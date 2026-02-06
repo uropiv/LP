@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro Legajo Personal</title>
+  <!-- Supabase v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <style>
+    body { font-family: Arial; background: #f0f0f0; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .form-container { background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.2); width:300px; }
+    input, button { width:100%; padding:10px; margin:5px 0; border-radius:5px; border:1px solid #ccc; }
+    button { background:#007BFF; color:white; border:none; cursor:pointer; }
+    button:hover { background:#0056b3; }
+    .mensaje { margin-top:10px; color:green; }
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  <h2>Registro</h2>
+  <input type="text" id="nombre" placeholder="Apellido y Nombre" required>
+  <input type="email" id="email" placeholder="Correo electrónico" required>
+  <input type="password" id="password" placeholder="Contraseña" required>
+  <button id="btn-registrar">Registrarse</button>
+  <div class="mensaje" id="mensaje"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1️⃣ Inicializar Supabase
+  const supabaseUrl = 'https://lmsuploxzisukefkspzq.supabase.co';
+  const supabaseKey = 'sb_publishable_pD7PdBxQ9jjRhJ6PYHYxYw_WPPNjIxZ';
+  const supabase = Supabase.createClient(supabaseUrl, supabaseKey); // ⚠️ importante: Supabase con S mayúscula
+
+  // 2️⃣ Evento del botón
+  document.getElementById('btn-registrar').addEventListener('click', async () => {
+    const nombre = document.getElementById('nombre').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    if(!nombre || !email || !password) {
+      document.getElementById('mensaje').textContent = 'Completa todos los campos';
+      return;
+    }
+
+    // 3️⃣ Crear usuario en Auth
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    if(error) {
+      document.getElementById('mensaje').textContent = 'Error: ' + error.message;
+      return;
+    }
+
+    // 4️⃣ Insertar usuario en tabla usuarios_app
+    const { error: dbError } = await supabase
+      .from('usuarios_app')
+      .insert([{ user_id: data.user.id, email, apellido_nombre: nombre, rol: 'usuario', activo: false }]);
+
+    if(dbError) {
+      document.getElementById('mensaje').textContent = 'Error: ' + dbError.message;
+      return;
+    }
+
+    // 5️⃣ Mostrar mensaje
+    document.getElementById('mensaje').textContent = 'Registro exitoso – en espera de activación';
+    document.getElementById('nombre').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+  });
+});
+</script>
+
+</body>
+</html>
