@@ -27,12 +27,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  // 1️⃣ Inicializar Supabase
   const supabaseUrl = 'https://lmsuploxzisukefkspzq.supabase.co';
   const supabaseKey = 'sb_publishable_pD7PdBxQ9jjRhJ6PYHYxYw_WPPNjIxZ';
-  const supabase = Supabase.createClient(supabaseUrl, supabaseKey); // ⚠️ importante: Supabase con S mayúscula
 
-  // 2️⃣ Evento del botón
+  // ✅ Aquí se inicializa correctamente con minúscula "supabase"
+  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
   document.getElementById('btn-registrar').addEventListener('click', async () => {
     const nombre = document.getElementById('nombre').value.trim();
     const email = document.getElementById('email').value.trim();
@@ -43,16 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 3️⃣ Crear usuario en Auth
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    // 🔹 Crear usuario
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
     if(error) {
       document.getElementById('mensaje').textContent = 'Error: ' + error.message;
       return;
     }
 
-    // 4️⃣ Insertar usuario en tabla usuarios_app
-    const { error: dbError } = await supabase
+    // 🔹 Insertar en la tabla
+    const { error: dbError } = await supabaseClient
       .from('usuarios_app')
       .insert([{ user_id: data.user.id, email, apellido_nombre: nombre, rol: 'usuario', activo: false }]);
 
@@ -61,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 5️⃣ Mostrar mensaje
     document.getElementById('mensaje').textContent = 'Registro exitoso – en espera de activación';
     document.getElementById('nombre').value = '';
     document.getElementById('email').value = '';
@@ -72,4 +71,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
